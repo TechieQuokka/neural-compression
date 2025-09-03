@@ -1,0 +1,85 @@
+# Neural Compression Configuration
+
+defaults:
+  - model: vae_gan_compression
+  - data: imagenet
+  - training: default
+  - optimizer: adamw
+  - scheduler: cosine
+  - _self_
+
+# Experiment Settings
+experiment:
+  name: neural_compression_v1
+  version: "0.1.0"
+  description: "VAE-GAN based compression with attention"
+  tags: ["compression", "vae", "gan", "attention"]
+
+# Model Configuration
+model:
+  name: "VAEGANCompression"
+  latent_dim: 256
+  compression_ratio: 16
+  use_attention: true
+  use_adversarial: true
+  quantization_levels: 256
+
+# Data Configuration  
+data:
+  dataset_name: "imagenet"
+  image_size: [256, 256]
+  batch_size: 32
+  num_workers: 8
+  pin_memory: true
+  augmentation: true
+
+# Training Configuration
+training:
+  max_epochs: 100
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  precision: "16-mixed"
+  devices: "auto"
+  accelerator: "gpu"
+  
+# Loss Weights
+loss_weights:
+  reconstruction: 1.0
+  kl_divergence: 0.01
+  adversarial: 0.1
+  perceptual: 0.1
+  rate_distortion: 0.05
+
+# Optimization
+optimizer:
+  name: "adamw"
+  lr: 1e-4
+  weight_decay: 1e-5
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: "cosine"
+  T_max: 100
+  eta_min: 1e-6
+
+# Logging & Monitoring
+logging:
+  log_every_n_steps: 50
+  val_check_interval: 1.0
+  save_top_k: 3
+  monitor: "val/total_loss"
+  mode: "min"
+
+# Wandb Configuration
+wandb:
+  project: "neural-compression"
+  entity: null
+  log_model: "all"
+  log_freq: "epoch"
+
+# Paths
+paths:
+  data_dir: "data/"
+  output_dir: "outputs/"
+  checkpoint_dir: "checkpoints/"
+  log_dir: "logs/"

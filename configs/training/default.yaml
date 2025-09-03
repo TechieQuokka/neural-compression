@@ -1,0 +1,52 @@
+# Default Training Configuration
+
+# Training Parameters
+max_epochs: 100
+min_epochs: 10
+patience: 10
+gradient_clip_val: 1.0
+gradient_clip_algorithm: "norm"
+accumulate_grad_batches: 1
+
+# Precision & Performance
+precision: "16-mixed"
+benchmark: true
+deterministic: false
+devices: "auto"
+accelerator: "gpu"
+strategy: "auto"
+
+# Validation
+val_check_interval: 1.0
+check_val_every_n_epoch: 1
+num_sanity_val_steps: 2
+
+# Checkpointing
+save_top_k: 3
+monitor: "val/total_loss"
+mode: "min"
+save_last: true
+save_weights_only: false
+every_n_epochs: 5
+
+# Logging
+log_every_n_steps: 50
+enable_progress_bar: true
+enable_model_summary: true
+max_depth: 1
+
+# Profiling (for debugging)
+profiler: null  # "simple", "advanced", "pytorch"
+detect_anomaly: false
+
+# Resume Training
+resume_from_checkpoint: null
+auto_lr_find: false
+auto_scale_batch_size: false
+
+# Early Stopping
+early_stopping:
+  monitor: "val/total_loss"
+  patience: 15
+  mode: "min"
+  min_delta: 1e-6

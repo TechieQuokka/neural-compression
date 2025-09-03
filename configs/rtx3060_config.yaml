@@ -1,0 +1,90 @@
+# RTX 3060 12GB 최적화 설정
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+# 실험 설정
+experiment:
+  name: "rtx3060_compression"
+  version: 1
+
+# 모델 설정 (메모리 최적화)
+model:
+  latent_dim: 128  # 메모리 절약을 위해 축소
+  compression_ratio: 16
+  base_channels: 64  # 메모리 절약
+  num_stages: 4
+  quantization:
+    method: "vector"
+    codebook_size: 512  # 메모리 절약
+    commitment_cost: 0.25
+
+# 데이터 설정 (RTX 3060 최적화)
+data:
+  batch_size: 8  # 12GB GPU에 적합한 배치 크기
+  num_workers: 6  # CPU 코어 수에 맞춤
+  pin_memory: true
+  persistent_workers: true
+  image_size: [256, 256]
+  augment: true
+
+# 훈련 설정
+training:
+  max_epochs: 100
+  accelerator: "gpu"
+  devices: 1
+  precision: 16  # Mixed precision for RTX 3060
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 2  # Effective batch size 16
+  val_check_interval: 0.5
+  enable_checkpointing: true
+  detect_anomaly: false  # 성능 최적화
+  benchmark: true  # CUDA 최적화
+  deterministic: false  # 성능 우선
+
+# 옵티마이저 (RTX 3060 최적화)
+optimizer:
+  name: "adamw"
+  lr: 2e-4  # RTX 3060에 적합한 학습률
+  weight_decay: 1e-4
+  betas: [0.9, 0.999]
+  eps: 1e-8
+
+# 스케줄러
+scheduler:
+  name: "cosine"
+  T_max: 100
+  eta_min: 1e-6
+
+# 손실 가중치 (메모리 절약)
+loss_weights:
+  reconstruction: 1.0
+  kl_divergence: 0.001
+  perceptual: 0.1
+  rate_distortion: 0.01
+
+# 경로 설정
+paths:
+  data_dir: "data"
+  checkpoint_dir: "checkpoints/rtx3060"
+  log_dir: "logs/rtx3060"
+
+# 로깅 설정
+logging:
+  log_every_n_steps: 50
+  monitor: "val/total_loss"
+  mode: "min"
+  save_top_k: 3
+
+# WandB (비활성화로 메모리 절약)
+wandb:
+  project: null
+  entity: null
+
+# 조기 종료
+early_stopping:
+  monitor: "val/total_loss"
+  patience: 15
+  mode: "min"
+  min_delta: 0.001

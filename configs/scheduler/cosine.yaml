@@ -1,0 +1,6 @@
+# Cosine Annealing Learning Rate Scheduler
+
+name: "cosine"
+T_max: 100
+eta_min: 1e-6
+last_epoch: -1

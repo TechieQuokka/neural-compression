@@ -1,0 +1,53 @@
+# VAE-GAN Compression Model Configuration
+
+# Architecture Settings
+encoder:
+  backbone: "resnet34"
+  latent_dim: 256
+  use_attention: true
+  attention_heads: 8
+  dropout: 0.1
+  activation: "gelu"
+
+decoder:
+  latent_dim: 256
+  use_attention: true
+  attention_heads: 8
+  dropout: 0.1
+  activation: "gelu"
+  upsampling_mode: "transpose"
+
+discriminator:
+  type: "patchgan"
+  n_layers: 3
+  ndf: 64
+  use_spectral_norm: true
+  
+# Quantization
+quantization:
+  enabled: true
+  method: "vector_quantization"  # "uniform", "vector_quantization", "learned"
+  num_embeddings: 1024
+  embedding_dim: 256
+  commitment_cost: 0.25
+  decay: 0.99
+
+# VAE Settings
+vae:
+  beta: 1.0  # KL weight
+  beta_schedule: "constant"  # "constant", "linear", "cyclical"
+  free_bits: 0.0
+
+# GAN Settings
+gan:
+  generator_loss: "least_squares"  # "vanilla", "least_squares", "wasserstein"
+  discriminator_loss: "least_squares"
+  gradient_penalty_weight: 10.0
+  n_critic: 1
+
+# Advanced Features
+features:
+  progressive_training: false
+  curriculum_learning: false
+  self_supervised: false
+  multi_scale: true
