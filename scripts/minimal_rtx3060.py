@@ -151,7 +151,7 @@ def minimal_rtx3060_train():
     no_improve_count = 0
     best_loss = float('inf')
     
-    epochs = 50
+    epochs = 500
     
     for epoch in range(epochs):
         epoch_loss = 0.0
