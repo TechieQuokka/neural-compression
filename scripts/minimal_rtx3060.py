@@ -122,7 +122,7 @@ def minimal_rtx3060_train():
     # RTX 3060 최적화 데이터로더
     dataloader = DataLoader(
         dataset,
-        batch_size=16,  # RTX 3060 12GB에 적합
+        batch_size=128,  # RTX 3060 12GB에 적합
         shuffle=True,
         num_workers=4,
         pin_memory=True,
@@ -146,18 +146,22 @@ def minimal_rtx3060_train():
     psnr_history = []
     best_psnr = 0.0
     
-    epochs = 20
+    # Early stopping parameters
+    patience = 3
+    no_improve_count = 0
+    best_loss = float('inf')
+    
+    epochs = 50
     
     for epoch in range(epochs):
         epoch_loss = 0.0
         epoch_psnr = 0.0
         num_batches = 0
         
-        pbar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs}")
+        pbar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{epochs} (patience: {no_improve_count}/{patience})")
         
         for batch_idx, (images, _) in enumerate(pbar):
-            if batch_idx >= 100:  # 제한된 배치 수
-                break
+            # 전체 데이터셋 사용 (배치 제한 제거)
             
             images = images.to(device, non_blocking=True)
             
@@ -217,6 +221,13 @@ def minimal_rtx3060_train():
                 memory_used = torch.cuda.memory_allocated() / 1024**3
                 print(f"  GPU 메모리: {memory_used:.1f}GB")
             
+            # Early stopping check
+            if avg_loss < best_loss:
+                best_loss = avg_loss
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+            
             # 최고 성능 저장
             if avg_psnr > best_psnr:
                 best_psnr = avg_psnr
@@ -230,6 +241,11 @@ def minimal_rtx3060_train():
                     'psnr': avg_psnr
                 }, checkpoint_dir / f"best_minimal_model.pth")
                 print(f"  ✓ 새로운 최고 PSNR: {avg_psnr:.2f} dB")
+                
+            # Early stopping
+            if no_improve_count >= patience:
+                print(f"\n🛑 Early stopping: {patience}번 연속 개선 없음")
+                break
     
     print(f"\n🎯 훈련 완료!")
     print(f"📊 최고 PSNR: {best_psnr:.2f} dB")

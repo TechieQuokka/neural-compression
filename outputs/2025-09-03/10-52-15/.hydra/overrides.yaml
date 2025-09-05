@@ -1,0 +1,6 @@
+- training.max_epochs=2
+- training.devices=1
+- data.batch_size=2
+- training.accelerator=gpu
+- training.gradient_clip_val=0
+- wandb.project=null

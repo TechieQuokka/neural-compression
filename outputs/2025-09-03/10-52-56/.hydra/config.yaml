@@ -1,0 +1,158 @@
+model:
+  encoder:
+    backbone: resnet34
+    latent_dim: 256
+    use_attention: true
+    attention_heads: 8
+    dropout: 0.1
+    activation: gelu
+  decoder:
+    latent_dim: 256
+    use_attention: true
+    attention_heads: 8
+    dropout: 0.1
+    activation: gelu
+    upsampling_mode: transpose
+  discriminator:
+    type: patchgan
+    n_layers: 3
+    ndf: 64
+    use_spectral_norm: true
+  quantization:
+    enabled: true
+    method: vector_quantization
+    num_embeddings: 1024
+    embedding_dim: 256
+    commitment_cost: 0.25
+    decay: 0.99
+  vae:
+    beta: 1.0
+    beta_schedule: constant
+    free_bits: 0.0
+  gan:
+    generator_loss: least_squares
+    discriminator_loss: least_squares
+    gradient_penalty_weight: 10.0
+    n_critic: 1
+  features:
+    progressive_training: false
+    curriculum_learning: false
+    self_supervised: false
+    multi_scale: true
+  name: VAEGANCompression
+  latent_dim: 256
+  compression_ratio: 16
+  use_attention: true
+  use_adversarial: true
+  quantization_levels: 256
+data:
+  dataset:
+    root: data/imagenet
+    split:
+    - train
+    - val
+    download: false
+  image_size:
+  - 256
+  - 256
+  channels: 3
+  normalize: true
+  mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  std:
+  - 0.229
+  - 0.224
+  - 0.225
+  batch_size: 2
+  num_workers: 8
+  pin_memory: true
+  persistent_workers: true
+  drop_last: true
+  augmentation: true
+  patch_size: 64
+  overlap: 16
+  random_patches: true
+  patches_per_image: 4
+  dataset_name: imagenet
+training:
+  max_epochs: 2
+  min_epochs: 10
+  patience: 10
+  gradient_clip_val: 0
+  gradient_clip_algorithm: norm
+  accumulate_grad_batches: 1
+  precision: 16-mixed
+  benchmark: true
+  deterministic: false
+  devices: 1
+  accelerator: gpu
+  strategy: auto
+  val_check_interval: 1.0
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: 2
+  save_top_k: 3
+  monitor: val/total_loss
+  mode: min
+  save_last: true
+  save_weights_only: false
+  every_n_epochs: 5
+  log_every_n_steps: 50
+  enable_progress_bar: true
+  enable_model_summary: true
+  max_depth: 1
+  profiler: null
+  detect_anomaly: false
+  resume_from_checkpoint: null
+  auto_lr_find: false
+  auto_scale_batch_size: false
+  early_stopping:
+    monitor: val/total_loss
+    patience: 15
+    mode: min
+    min_delta: 1.0e-06
+optimizer:
+  name: adamw
+  lr: 0.0001
+  weight_decay: 1.0e-05
+  betas:
+  - 0.9
+  - 0.999
+  eps: 1.0e-08
+scheduler:
+  name: cosine
+  T_max: 100
+  eta_min: 1.0e-06
+  last_epoch: -1
+experiment:
+  name: neural_compression_v1
+  version: 0.1.0
+  description: VAE-GAN based compression with attention
+  tags:
+  - compression
+  - vae
+  - gan
+  - attention
+loss_weights:
+  reconstruction: 1.0
+  kl_divergence: 0.01
+  adversarial: 0.1
+  perceptual: 0.1
+  rate_distortion: 0.05
+logging:
+  log_every_n_steps: 50
+  val_check_interval: 1.0
+  save_top_k: 3
+  monitor: val/total_loss
+  mode: min
+wandb:
+  project: neural-compression
+  entity: null
+  log_model: all
+  log_freq: epoch
+paths:
+  data_dir: data/
+  output_dir: outputs/
+  checkpoint_dir: checkpoints/
+  log_dir: logs/
